@@ -9,6 +9,9 @@ import os
 import os.path
 import random
 import argparse
+import io
+import json
+from PIL import Image
 
 from torchvision import datasets
 
@@ -89,6 +92,7 @@ def write_dataset(imagenet, base="./shards", split="train"):
 
             # Read the JPEG-compressed image file contents.
             image = readfile(fname)
+            width, height = Image.open(io.BytesIO(image)).size
 
             # Construct a uniqu keye from the filename.
             key = os.path.splitext(os.path.basename(fname))[0]
@@ -99,7 +103,7 @@ def write_dataset(imagenet, base="./shards", split="train"):
 
             # Construct a sample.
             xkey = key if args.filekey else "%07d" % i
-            sample = {"__key__": xkey, "jpg": image, "cls": cls}
+            sample = {"__key__": xkey, "jpg": image, "cls": cls, "json": json.dumps({"height": height, "width": width})}
 
             # Write the sample to the sharded tar archives.
             sink.write(sample)
